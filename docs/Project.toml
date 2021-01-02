@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+GatherShot = "fc9c1619-52aa-4158-aff4-9a877b4db880"
