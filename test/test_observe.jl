@@ -12,7 +12,8 @@ using GatherShot
             other = joinpath(child, relpath)
             write(other, "mutated")
 
-            reset(parent, child, relpath)
+            @test readline(other) == "mutated"
+            GatherShot.reset(parent, child, other)
             @test readline(other) == "original"
         end
     end
@@ -20,5 +21,5 @@ end
 
 
 @testset "new xml is one more than old xml" begin
-    @test next_log(["f017.xml", "g001.xml"]) == 18
+    @test GatherShot.next_log(["f017.xml", "g001.xml"]) == 18
 end

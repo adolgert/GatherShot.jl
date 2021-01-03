@@ -1,9 +1,11 @@
 # This adds mutators to the Vimes.jl library.
 # It uses this as a guide:
 # http://pitest.org/quickstart/mutators/
-
+using InteractiveUtils
 using SourceWalk
 using Vimes
+
+
 egtext = """
 function aa(x)
     if x > 3
@@ -22,7 +24,7 @@ function show_replacements(ex, fs)
     match_any = false
     Vimes.pathwalk(ex) do p, x
       for f in fs
-        if matches(f, x)
+        if Vimes.matches(f, x)
           println("starts as $(x)")
           println("matches to $(f(x))")
           match_any = true
@@ -34,10 +36,10 @@ function show_replacements(ex, fs)
 end
 
 egi = SourceWalk.SourceFile("nowhere", egtext)
-SourceWalk.replacement(egi, flipcond)
-SourceWalk.textmap(_ ->Expr(:file, :(b*2)), "a * 2")
-SourceWalk.textmap(nn_cond(flipcond), egtext)
-show_replacements(egi, [flipcond])
+#SourceWalk.replacement(egi, Vimes.flipcond)
+#SourceWalk.textmap(_ ->Expr(:file, :(b*2)), "a * 2")
+#SourceWalk.textmap(nn_cond(Vimes.flipcond), egtext)
+show_replacements(egi, [Vimes.flipcond])
 
 # Turns > into >=, >= into >. The same for less-than.
 function conditionals_boundary(x)
