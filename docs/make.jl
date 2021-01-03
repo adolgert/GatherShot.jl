@@ -13,9 +13,12 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Usage" => "man/usage.md"
     ],
 )
 
 deploydocs(;
+    devbranch = "main",
     repo="github.com/adolgert/GatherShot.jl",
+    deploy_config=Documenter.GitHubActions()
 )

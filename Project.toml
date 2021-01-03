@@ -3,6 +3,12 @@ uuid = "fc9c1619-52aa-4158-aff4-9a877b4db880"
 authors = ["adolgert <adolgert@uw.edu>"]
 version = "0.1.0"
 
+[deps]
+EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
+SourceWalk = "2987fe4f-acca-4bd1-87ee-98b3d562f1a1"
+TestReports = "dcd651b4-b50a-5b6b-8f22-87e9f253a252"
+Vimes = "85f4b15a-ac2e-11e8-1659-abc63ef75ab0"
+
 [compat]
 julia = "1"
 
