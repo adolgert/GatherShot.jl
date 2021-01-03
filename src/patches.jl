@@ -133,18 +133,33 @@ empty_return(x::Dict{K,V}) where {K,V} = Dict{K,V}()
 empty_return(x::Char) = '\0'
 empty_return(x) = x
 
-
 function empty_returns(x)
     isexpr(x, :return) || return
     Expr(:return, Expr(:call, :empty_return, x.args[1]))
 end
 
-flip_return(x::Bool) = !x
-flip_return(x) = x
 
+"""
+Swap a returned bool for its negation. This won't do anything unless it's a bool.
+It's a good example of the difficulty of doing mutation at the
+syntax level when you don't know the types.
+"""
 function flip_returns(x)
     isexpr(x, :return) || return
-    Expr(:return, Expr(:call, :flip_return, x.args[1]))
+    Expr(:return,
+        Expr(:if,
+            Expr(:call,
+                :isa,
+                x.args[1],
+                :Bool
+            ),
+            Expr(:call,
+                :!,
+                x.args[1]
+            ),
+            x.args[1]
+        )
+    )
 end
 
 
@@ -156,15 +171,19 @@ end
 
 function increment_integer(x)
     x isa Integer && !(x isa Bool) && return x + 1
+    nothing
 end
+
 
 function decrement_integer(x)
     x isa Integer && !(x isa Bool) && return x - 1
+    nothing
 end
 
 
 function scale_float(x)
     x isa AbstractFloat && return 0.9 * x
+    nothing
 end
 
 

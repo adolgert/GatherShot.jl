@@ -38,7 +38,7 @@ end
 end
 """
 tmpstring(eg_flipcond) do fn
-    found, original, mutated = check_replacement(fn, Vimes.flipcond)
+    found, original, mutated = GatherShot.check_replacement(fn, Vimes.flipcond)
     @test found
     @test original != mutated
 end
@@ -67,7 +67,7 @@ end
 end
 """
 tmpstring(eg) do fn
-    found, original, mutated = check_replacement(fn, GatherShot.conditionals_boundary)
+    found, original, mutated = GatherShot.check_replacement(fn, GatherShot.conditionals_boundary)
     @test found
     @test original != mutated
     end
@@ -93,7 +93,7 @@ function eg_func(x)
 end
 """
 tmpstring(eg) do fn
-    found, original, mutated = check_replacement(fn, GatherShot.invert_negatives)
+    found, original, mutated = GatherShot.check_replacement(fn, GatherShot.invert_negatives)
     @test found
     @test original != mutated
     end
@@ -107,6 +107,21 @@ neg_example = quote
     c = 7 - b
 end
 @test GatherShot.show_replacements(neg_example, [GatherShot.math_mutator])
+end
+
+
+@testset "math_mutator runs after replacement" begin
+eg = """
+function eg_func(x)
+    b = 7
+    x - b
+end
+"""
+tmpstring(eg) do fn
+    found, original, mutated = GatherShot.check_replacement(fn, GatherShot.math_mutator)
+    @test found
+    @test original != mutated
+end
 end
 
 
@@ -128,6 +143,19 @@ end
 end
 
 
+@testset "flip_returns runs after replacement" begin
+eg = """
+function eg_func(x)
+    return x == 3
+end
+"""
+tmpstring(eg) do fn
+    found, original, mutated = GatherShot.check_replacement(fn, GatherShot.flip_returns)
+    @test found
+    @test original != mutated
+end
+end
+
 
 @testset "return_nothing finds return" begin 
 return_eg = quote
@@ -135,6 +163,20 @@ return_eg = quote
     return x
 end
 @test GatherShot.show_replacements(return_eg, [GatherShot.return_nothing])
+end
+
+
+@testset "return_nothing runs after replacement" begin
+eg = """
+function eg_func(x)
+    return 3*x
+end
+"""
+tmpstring(eg) do fn
+    found, original, mutated = GatherShot.check_replacement(fn, GatherShot.return_nothing)
+    @test found
+    @test original != mutated
+end
 end
 
 
@@ -147,6 +189,21 @@ end
         integer_eg,
         [GatherShot.increment_integer]
     )
+end
+
+
+@testset "increment_integer runs after replacement" begin
+eg = """
+function eg_func(x)
+    a = 7
+    return x + a
+end
+"""
+tmpstring(eg) do fn
+    found, original, mutated = GatherShot.check_replacement(fn, GatherShot.increment_integer)
+    @test found
+    @test original != mutated
+end
 end
 
 
@@ -171,6 +228,20 @@ end
         float_eg,
         [GatherShot.scale_float]
     )
+end
+
+
+@testset "scale_float runs after replacement" begin
+eg = """
+function eg_func(x)
+    return x + 7.9
+end
+"""
+tmpstring(eg) do fn
+    found, original, mutated = GatherShot.check_replacement(fn, GatherShot.scale_float)
+    @test found
+    @test original != mutated
+end
 end
 
 
