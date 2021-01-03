@@ -62,39 +62,6 @@ function read_reports(dir)
 end
 
 
-function blah()
-    working = "/tmp/working"
-    isdir(working) || mkdir(working)
-    cd(working)
-    Pkg.activate(".")
-    #Pkg.add(["TestReports"])
-    Pkg.develop(path = expanduser("~/dev/TestReports.jl"))
-    tmp = initialise_noclean(expanduser("~/dev/BijectiveHilbert.jl"))
-    pkgname = "BijectiveHilbert"
-    Pkg.develop(path = tmp)
-
-    #Pkg.activate(tmp)
-    test_idx = 5
-    logfile = joinpath(working, "log$(test_idx).xml")
-    runonce(tmp, logfile, pkgname)
-
-
-    filter(x -> endswith(x, ".xml"), readdir(tmp))
-    filter(x -> endswith(x, ".xml"), readdir(working))
-    testlog = joinpath(tmp, "testlog.xml")
-    if isfile(testlog)
-        cp(testlog, joinpath(working, "log$(test_idx).xml"), force = true)
-        rm(testlog)
-    end
-    otherlog = joinpath(working, "$(pkgname)_testlog.xml")
-    isfile(otherlog) && rm(otherlog)
-
-
-    Pkg.rm("BijectiveHilbert")
-    rm(tmp, recursive=true)
-end
-
-
 """
     select_tests(outcomes)
 
