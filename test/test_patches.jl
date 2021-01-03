@@ -3,6 +3,19 @@ using GatherShot
 using Vimes
 
 
+function tmpstring(f::Function, body)
+    fn = "$(tempname()).jl"
+    write(fn, body)
+    try
+        f(fn)
+    catch
+        rethrow()
+    finally
+        rm(fn)
+    end
+end
+
+
 @testset "flipcond finds the less-than" begin
 egi = quote
     if x > 3
@@ -11,6 +24,24 @@ egi = quote
     54
 end
 @test GatherShot.show_replacements(egi, [Vimes.flipcond])
+end
+
+
+@testset "flipcond runs after replacement" begin
+eg_flipcond = """
+function eg_func(x)
+if x > 2
+    9
+else
+    1
+end
+end
+"""
+tmpstring(eg_flipcond) do fn
+    found, original, mutated = check_replacement(fn, Vimes.flipcond)
+    @test found
+    @test original != mutated
+end
 end
 
 
@@ -25,6 +56,24 @@ end
 end
 
 
+@testset "conditionals_boundary runs after replacement" begin
+eg = """
+function eg_func(x)
+if x > 3
+    9
+else
+    1
+end
+end
+"""
+tmpstring(eg) do fn
+    found, original, mutated = check_replacement(fn, GatherShot.conditionals_boundary)
+    @test found
+    @test original != mutated
+    end
+end
+
+
 @testset "invert_negatives finds a negative" begin
 neg_example = quote
     a = 3
@@ -32,6 +81,22 @@ neg_example = quote
     c = 7 - b
 end
 @test GatherShot.show_replacements(neg_example, [GatherShot.invert_negatives])
+end
+
+
+@testset "invert_negatives runs after replacement" begin
+eg = """
+function eg_func(x)
+    a = 6
+    b = -a
+    x + b
+end
+"""
+tmpstring(eg) do fn
+    found, original, mutated = check_replacement(fn, GatherShot.invert_negatives)
+    @test found
+    @test original != mutated
+    end
 end
 
 

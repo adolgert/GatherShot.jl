@@ -23,6 +23,42 @@ function show_replacements(ex, fs)
 end
 
 
+"""
+    check_replacement(example_file, mutation)
+
+Check that a patch works on a file and runs when patched.
+The `example_file` is the path to a file to mutate.
+The mutation is a single mutation function. The example
+file must contain a function called `eg_func` that has
+a single argument. It will be called with `eg_func(3)`
+and should return one value unmutated and a different
+value when mutated.
+"""
+function check_replacement(example_file, mutation)
+    include(example_file)
+    original_result = Base.invokelatest(eg_func, 3)
+
+    pf = Vimes.parsefile(example_file)
+    fidx = Vimes.index(pf, [mutation])
+    length(fidx) > 0 || return (false, original_result, nothing)
+    mut_fn = "$(tempname()).jl"
+    cp(example_file, mut_fn, force = true)
+    path, patch = first(fidx)
+    Vimes.apply!(mut_fn, path, patch[1])
+
+    mutated_result = original_result
+    try
+        include(mut_fn)
+        mutated_result = Base.invokelatest(eg_func, 3)
+    catch e
+        rethrow()
+    finally
+        rm(mut_fn)
+    end
+    (true, original_result, mutated_result)
+end
+
+
 # Turns > into >=, >= into >. The same for less-than.
 function conditionals_boundary(x)
     if isexpr(x, :call)
