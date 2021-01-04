@@ -1,5 +1,6 @@
 # Given a project on disk, loop through mutations and runs of unit tests.
 
+using Logging
 using Pkg
 using TestReports
 using SourceWalk
@@ -17,9 +18,17 @@ end
 
 function mutate_and_reset(callback::Function, dir, tmp, idx)
     f = nothing
-    while isempty(SourceWalk.diff(dir, tmp))
-      f = Vimes.mutate(tmp, idx)
+    patch = nothing
+    diff_pairs = Any[]
+    while isempty(diff_pairs)
+      f, patch = Vimes.mutate(tmp, idx)
+      diff_pairs = Vimes.diff(dir, tmp)
     end
+    if isnothing(f)
+        diff_pairs = Vimes.diff(dir, tmp)
+        error("Starting with a diff $(diff_pairs)")
+    end
+    println("Chose diff of $(f) $(String(Symbol(patch))): $(diff_pairs)")
     callback()
     reset(dir, tmp, f)
 end
@@ -47,6 +56,7 @@ function setup_working(project_dir)
         Pkg.rm(pkgname)
     end
     Pkg.develop(path = copy_dir)
+    Pkg.status()
     (copy_dir, pkgname)
 end
 
@@ -77,17 +87,25 @@ function run_testreports(pkgname)
 end
 
 
-next_log(file_list) =
+function next_log(file_list)
+    xml_files = filter(x->endswith(x, ".xml"), file_list)
+    length(xml_files) == 0 && return 1
     maximum(map(x -> parse(Int, match(r"[0-9]+", x).match),
-                filter(x->endswith(x, ".xml"), file_list))) + 1
+                xml_files)) + 1
+end
 
 
 function generate_mutation_reports(project_dir, tmp, cnt::UnitRange, pkgname, logdir = pwd())
-    mutant_index = Vimes.indices(joinpath(tmp, "src"), Vimes.defaults)
+    patches = Any[
+        Vimes.rmline, Vimes.flipcond,
+        conditionals_boundary, invert_negatives, math_mutator, flip_returns,
+        return_nothing, increment_integer, decrement_integer, scale_float, flip_and_or
+    ]
+    mutant_index = Vimes.indices(joinpath(tmp, "src"), patches)
     begin_idx = next_log(readdir(logdir))
     for mutation_idx in cnt .+ begin_idx
-        `$(Base.julia_cmd()) --project=$tmp -e 'using Pkg; Pkg.test()'`
-        Vimes.mutate_and_reset(project_dir, tmp, mutant_index) do
+        #`$(Base.julia_cmd()) --project=$tmp -e 'using Pkg; Pkg.test()'`
+        mutate_and_reset(project_dir, tmp, mutant_index) do
             testlog = joinpath(tmp, joinpath(logdir, "log$(lpad(mutation_idx, 5, "0")).xml"))
             runonce(tmp, testlog, pkgname)
         end

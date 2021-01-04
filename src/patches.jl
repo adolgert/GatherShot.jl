@@ -81,7 +81,7 @@ end
 
 # This takes the unary - to a positive.
 function invert_negatives(x)
-    isexpr(x) && x.args[1] == :- && length(x.args) == 2 || return
+    isexpr(x, :call) && x.args[1] == :- && length(x.args) == 2 || return
     x.args[2]
 end
 
@@ -190,4 +190,5 @@ end
 function flip_and_or(x)
     isexpr(x, :&&) && return Expr(:||, x.args...)
     isexpr(x, :||) && return Expr(:&&, x.args...)
+    nothing
 end

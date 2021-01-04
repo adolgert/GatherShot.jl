@@ -19,4 +19,6 @@ The Julia testing environment doesn't have built-in support for selecting tests 
 
 ```julia
 pkg> add BijectiveHilbert
+pkg> add https://github.com/MikeInnes/Vimes.jl
 ```
+You have to add `Vimes.jl` by hand because there is a non-working version on JuliaHub and a working version on GitHub.

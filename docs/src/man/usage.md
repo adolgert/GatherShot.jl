@@ -17,6 +17,39 @@ There are a few ways that a test suite might not have the information in it that
 
 2. All of the tests may be in one test set. There may be many calls to `@test`, but there is no way to distinguish the start of one test set and the end of another. If that's the case, then there is no way to determine which sets of tests pass or fail. The individual `@test` calls don't carry much meaning.
 
+## Patch Vimes and TestReports
+
+This is the new `apply!` in `patch.jl` of Vimes.
+```julia
+function apply!(f, path, patch)
+  sourcemap(f) do ex
+    pathwalk(ex) do p, x
+      p == path ? patch(x) : x
+    end
+  end
+  f, patch
+end
+```
+And `TestReports.jl` keeps trying to eval the error codes, which fails here. So this is the change to `to_xml.jl` because I don't care why it got an error, just that it got an error.
+```julia
+function get_error_info(v::Error)
+    if v.test_type == :test_nonbool
+        msg = "Expression evaluated to non-Boolean"
+        type = "Expression evaluated to non-Boolean"
+    elseif v.test_type == :test_unbroken
+        msg = "Got correct result, please change to @test if no longer broken."
+        type = "Unexpected Pass"
+    elseif v.test_type == :nontest_error
+        msg = "Got exception outside of a @test"
+        type = "nontest_error"  #typeof(eval(Meta.parse(v.value)))
+    else
+        err = "unknown_error"  #eval(Meta.parse(v.value))
+        msg = "unknown_error"  #sprint(showerror, err)
+        type = "unknown_error"  # typeof(err)
+    end
+    return msg, type
+end
+```
 
 ## Set up the GatherShot application.
 
@@ -32,6 +65,9 @@ Pkg.activate(".")
 Pkg.add("GatherShot")
 ```
 
+We want unit tests to run as quickly as possible, so it helps to install into `~/working` all of the package dependencies of the package we will test. Look up the `Project.toml` of the package to test and add those dependencies.
+
+
 ## Start gathering data on the unit test coverage
 This will run the unit tests 100 times.
 ```julia
@@ -42,7 +78,7 @@ The 100 runs may not be enough, but you'll know when you look at the data. This 
 
 1. A mutation can cause the unit tests to fail to return. In this case, use Ctrl-C and restart.
 
-2. There may be few unit tests that fail. Sometimes it works out this way, depending on the unit tests.
+2. There may be few unit tests that fail. Sometimes it works out this way, depending on the unit tests. As a result, there will be very little data generated.
 
 
 ## Process the results
