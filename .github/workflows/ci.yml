@@ -50,6 +50,8 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Pkg
+            Pkg.add(url = "https://github.com/MikeInnes/SourceWalk.jl")
+            Pkg.add(url = "https://github.com/MikeInnes/Vimes.jl")
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
       - run: |
