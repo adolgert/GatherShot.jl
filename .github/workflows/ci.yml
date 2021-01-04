@@ -10,7 +10,6 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.0'
           - '1.5'
         os:
           - ubuntu-latest
@@ -32,13 +31,13 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - run: |
-          julia -e '
-            using Pkg
-            Pkg.add("https://github.com/MikeInnes/SourceWalk.jl")
-            Pkg.add("https://github.com/MikeInnes/Vimes.jl")
-            '
       - uses: julia-actions/julia-buildpkg@v1
+      - run: |
+          julia --project=~/work/GatherShot.jl/GatherShot.jl -e '
+            using Pkg
+            Pkg.add(url = "https://github.com/MikeInnes/SourceWalk.jl")
+            Pkg.add(url = "https://github.com/MikeInnes/Vimes.jl")
+            '
       - uses: julia-actions/julia-runtest@v1
   docs:
     name: Documentation
@@ -51,6 +50,8 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Pkg
+            Pkg.add(url = "https://github.com/MikeInnes/SourceWalk.jl")
+            Pkg.add(url = "https://github.com/MikeInnes/Vimes.jl")
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
       - run: |
