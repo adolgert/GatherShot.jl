@@ -12,6 +12,7 @@ TestReports = "dcd651b4-b50a-5b6b-8f22-87e9f253a252"
 Vimes = "85f4b15a-ac2e-11e8-1659-abc63ef75ab0"
 
 [compat]
+Vimes = "0.1"
 julia = "1"
 
 [extras]
